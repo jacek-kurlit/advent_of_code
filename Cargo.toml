@@ -1,0 +1,2 @@
+[workspace]
+members = ["common", "y2016", "y2017"]
