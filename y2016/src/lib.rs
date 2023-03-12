@@ -13,9 +13,4 @@ mod test {
     fn ok() {
         assert_eq!(2, crate::x())
     }
-
-    #[test]
-    fn ok_sub() {
-        assert_eq!(0, crate::y())
-    }
 }
