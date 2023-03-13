@@ -1,18 +1,9 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
-
-pub fn sub(left: usize, right: usize) -> usize {
-    left - right
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+pub fn load_input(path: &str) -> String {
+    let file_name = format!(
+        "{}/input/{}",
+        std::env::current_dir().unwrap().display(),
+        path
+    );
+    std::fs::read_to_string(&file_name)
+        .unwrap_or_else(|_| panic!("Failed to read input file {}", file_name))
 }
