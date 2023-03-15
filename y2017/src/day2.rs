@@ -20,15 +20,18 @@ pub fn task2(input: String) -> u32 {
         .lines()
         .map(|row| {
             let row_numbers = prase_row(row);
-            let x = row_numbers
-                .windows(2)
-                .map(|w| (w[0].max(w[1]), w[0].min(w[1])))
-                .filter(|(max, min)| max % min == 0)
-                .map(|(max, min)| max / min)
-                .next()
-                .unwrap_or_default();
-            x
+            for i in 0..row_numbers.len() {
+                for j in i + 1..row_numbers.len() {
+                    let max = row_numbers[i].max(row_numbers[j]);
+                    let min = row_numbers[i].min(row_numbers[j]);
+                    if max % min == 0 {
+                        return (max, min);
+                    }
+                }
+            }
+            (0, 0)
         })
+        .map(|(max, min)| max / min)
         .sum()
 }
 
