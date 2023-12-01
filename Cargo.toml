@@ -1,2 +1,8 @@
 [workspace]
-members = ["common", "y2016", "y2017"]
+# 2 is lateast that should be used
+resolver = "2"
+# you actually can use start here...
+members = ["common", "y*"]
+
+# add this so all libs will have those!
+#[workspace.dependencies]
