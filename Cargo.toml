@@ -5,4 +5,5 @@ resolver = "2"
 members = ["common", "y*"]
 
 # add this so all libs will have those!
-#[workspace.dependencies]
+[workspace.dependencies]
+rstest = "0.18"

@@ -22,6 +22,9 @@ fn part_2(input: &str) -> u32 {
 fn part2_digits_sum(line: &str) -> u32 {
     let mut chars = line.chars().collect::<Vec<char>>();
     let first = find_first_digit(chars.as_slice());
+    // NOTE: reason for reverse is twoone should be 21 not 22!
+    // which means I should move single char forward each time instead of whole number string
+    // If I did so I would not need to reverse the chars...
     chars.reverse();
     let last = find_first_digit(chars.as_slice());
     first * 10 + last
@@ -72,27 +75,22 @@ xtwone3four
 4nineeightseven2
 zoneight234
 7pqrstsixteen";
-        assert_eq!(part_2(input), 281);
+        assert_eq!(part_2(input), 281)
     }
 
-    #[test]
-    fn part_2_extra_examples() {
-        assert_eq!(part_2("one1two2three3four4five5six6seven7eight8nine9"), 19);
-        assert_eq!(part_2("9twotwoqlvkrkhjthree44shvjxkpjgzgphgprflvn"), 94);
-        assert_eq!(part_2("zcddqkhkjlfive4onexkdggcbfbqzxhfxqnb6"), 56);
-        assert_eq!(
-            part_2("hceightwobgcbsbtslf2onebhkdqlpvxxjpgsnmzfthree9"),
-            89
-        );
-        assert_eq!(part_2("1fourtwo"), 12);
-        assert_eq!(part_2("eightone4"), 84);
-        assert_eq!(part_2("threetvlsjbmnfive83three"), 33);
-        assert_eq!(part_2("fiveeng8jjjttwone"), 51);
+    use rstest::rstest;
 
-        let input = r"1fourtwo
-one1two2three3four4five5six6seven7eight8nine9
-9twotwoqlvkrkhjthree44shvjxkpjgzgphgprflvn";
-        assert_eq!(part_2(input), 125);
+    //NOTE: this is not working with neotest-rust yet https://github.com/rouge8/neotest-rust/pull/57
+    #[rstest]
+    #[case("one1two2three3four4five5six6seven7eight8nine9", 19)]
+    #[case("9twotwoqlvkrkhjthree44shvjxkpjgzgphgprflvn", 94)]
+    #[case("zcddqkhkjlfive4onexkdggcbfbqzxhfxqnb6", 56)]
+    #[case("1fourtwo", 12)]
+    #[case("eightone4", 84)]
+    #[case("threetvlsjbmnfive83three", 33)]
+    #[case("fiveeng8jjjttwone", 51)]
+    fn part_2_extra_examples(#[case] input: &str, #[case] expected: u32) {
+        assert_eq!(part_2(input), expected);
     }
 
     #[test]
