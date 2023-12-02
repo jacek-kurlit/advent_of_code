@@ -1,3 +1,4 @@
+mod template;
 pub fn load_input(path: &str) -> String {
     let file_name = format!(
         "{}/input/{}",
