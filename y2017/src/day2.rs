@@ -1,4 +1,5 @@
 pub fn task1(input: String) -> u32 {
+    println!("Input: {}", input);
     input
         .lines()
         .map(|row| {
