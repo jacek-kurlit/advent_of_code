@@ -23,7 +23,7 @@ pub fn task2(input: &str) -> u32 {
 
     digits
         .windows(halfway + 1)
-        .map(|w| if w[0] == w[halfway ] { w[0] } else { 0 })
+        .map(|w| if w[0] == w[halfway] { w[0] } else { 0 })
         .sum()
 }
 

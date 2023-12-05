@@ -40,13 +40,12 @@ pub fn task2(input: String) -> u32 {
 mod tests {
     use super::*;
 
-    const INPUT: &str = "5 1 9 5
-7 5 3
-2 4 6 8";
-
     #[test]
     fn should_solve_task1() {
-        assert_eq!(task1(INPUT.to_string()), 18);
+        let input = "5 1 9 5
+7 5 3
+2 4 6 8";
+        assert_eq!(task1(input.to_string()), 18);
     }
 
     #[test]
@@ -54,6 +53,7 @@ mod tests {
         let input = "5 9 2 8
 9 4 7 3
 3 8 6 5";
+        println!("dada");
         assert_eq!(task2(input.to_string()), 9);
     }
 }
