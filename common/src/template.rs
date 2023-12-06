@@ -10,7 +10,7 @@ fn part_2(input: &str) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use crate::template::{part_1, part_2};
+    use super::{part_1, part_2};
 
     #[test]
     fn solve_part_1_example() {
