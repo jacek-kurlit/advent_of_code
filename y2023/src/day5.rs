@@ -1,7 +1,7 @@
-use std::{collections::HashMap, str::Lines};
+use std::{ops::Range, str::Lines, u64};
 
 #[allow(dead_code)]
-fn part_1(input: &str) -> u32 {
+fn part_1(input: &str) -> u64 {
     let parsed_map = parse_input(input);
     parsed_map
         .0
@@ -12,45 +12,81 @@ fn part_1(input: &str) -> u32 {
 }
 
 #[allow(dead_code)]
-fn part_2(input: &str) -> u32 {
-    input.len() as u32
+fn part_2(input: &str) -> u64 {
+    let parsed_map = parse_input(input);
+    let seed_ranges: Vec<Range<u64>> = parsed_map
+        .0
+        .windows(2)
+        .step_by(2)
+        .map(|range| range[0]..range[0] + range[1])
+        .collect();
+    (0..u64::MAX)
+        .map(|location| (location, parsed_map.1.location_to_seed(location)))
+        .find(|(_, seed)| seed_ranges.iter().any(|range| range.contains(seed)))
+        .map(|(location, _)| location)
+        .expect("No seed found")
 }
 
 #[derive(Debug)]
 struct ParsedMappings {
-    seed_to_soil: HashMap<u32, u32>,
-    soil_to_fertilizer: HashMap<u32, u32>,
-    fertilizer_to_water: HashMap<u32, u32>,
-    water_to_light: HashMap<u32, u32>,
-    light_to_temperature: HashMap<u32, u32>,
-    temperature_to_humidity: HashMap<u32, u32>,
-    humidity_to_location: HashMap<u32, u32>,
+    seed_to_soil: Vec<Mapping>,
+    soil_to_fertilizer: Vec<Mapping>,
+    fertilizer_to_water: Vec<Mapping>,
+    water_to_light: Vec<Mapping>,
+    light_to_temperature: Vec<Mapping>,
+    temperature_to_humidity: Vec<Mapping>,
+    humidity_to_location: Vec<Mapping>,
+}
+
+#[derive(Debug)]
+struct Mapping {
+    destination: u64,
+    source: u64,
+    size: u64,
 }
 
 impl ParsedMappings {
-    fn seed_to_location(&self, seed: u32) -> u32 {
-        *self
-            .seed_to_soil
-            .get(&seed)
-            .and_then(|soil| self.soil_to_fertilizer.get(soil).or(Some(soil)))
-            .and_then(|fertilizer| {
-                self.fertilizer_to_water
-                    .get(fertilizer)
-                    .or(Some(fertilizer))
+    fn seed_to_location(&self, seed: u64) -> u64 {
+        let soil = ParsedMappings::find_destination(&self.seed_to_soil, seed);
+        let fertilizer = ParsedMappings::find_destination(&self.soil_to_fertilizer, soil);
+        let water = ParsedMappings::find_destination(&self.fertilizer_to_water, fertilizer);
+        let light = ParsedMappings::find_destination(&self.water_to_light, water);
+        let temperature = ParsedMappings::find_destination(&self.light_to_temperature, light);
+        let humidity = ParsedMappings::find_destination(&self.temperature_to_humidity, temperature);
+        ParsedMappings::find_destination(&self.humidity_to_location, humidity)
+    }
+
+    fn find_destination(mappings: &[Mapping], source: u64) -> u64 {
+        mappings
+            .iter()
+            .find(|mapping| source >= mapping.source && source < mapping.source + mapping.size)
+            .map(|mapping| mapping.destination + source - mapping.source)
+            .unwrap_or(source)
+    }
+
+    fn location_to_seed(&self, location: u64) -> u64 {
+        let humidity = ParsedMappings::find_source(&self.humidity_to_location, location);
+        let temperature = ParsedMappings::find_source(&self.temperature_to_humidity, humidity);
+        let light = ParsedMappings::find_source(&self.light_to_temperature, temperature);
+        let water = ParsedMappings::find_source(&self.water_to_light, light);
+        let fertilizer = ParsedMappings::find_source(&self.fertilizer_to_water, water);
+        let soil = ParsedMappings::find_source(&self.soil_to_fertilizer, fertilizer);
+        ParsedMappings::find_source(&self.seed_to_soil, soil)
+    }
+
+    fn find_source(mappings: &[Mapping], destination: u64) -> u64 {
+        mappings
+            .iter()
+            .find(|mapping| {
+                destination >= mapping.destination
+                    && destination < mapping.destination + mapping.size
             })
-            .and_then(|water| self.water_to_light.get(water).or(Some(water)))
-            .and_then(|light| self.light_to_temperature.get(light).or(Some(light)))
-            .and_then(|temperature| {
-                self.temperature_to_humidity
-                    .get(temperature)
-                    .or(Some(temperature))
-            })
-            .and_then(|humidity| self.humidity_to_location.get(humidity).or(Some(humidity)))
-            .expect("Invalid seed")
+            .map(|mapping| mapping.source + destination - mapping.destination)
+            .unwrap_or(destination)
     }
 }
 
-fn parse_input(input: &str) -> (Vec<u32>, ParsedMappings) {
+fn parse_input(input: &str) -> (Vec<u64>, ParsedMappings) {
     let mut lines = input.lines();
     let seeds = parse_seeds(&mut lines);
     let seed_to_soil = parse_mapping("seed-to-soil map:", &mut lines);
@@ -74,42 +110,44 @@ fn parse_input(input: &str) -> (Vec<u32>, ParsedMappings) {
     )
 }
 
-fn parse_seeds(lines: &mut Lines<'_>) -> Vec<u32> {
-    let seeds: Vec<u32> = lines
+fn parse_seeds(lines: &mut Lines<'_>) -> Vec<u64> {
+    let seeds: Vec<u64> = lines
         .next()
         .unwrap()
         .split_once(": ")
         .expect("Invalid seeds input")
         .1
         .split(' ')
-        .map(|x| x.parse::<u32>().unwrap())
+        .map(|x| x.parse::<u64>().unwrap())
         .collect();
     lines.next();
     seeds
 }
 
-fn parse_mapping(header: &str, lines: &mut Lines) -> HashMap<u32, u32> {
+fn parse_mapping(header: &str, lines: &mut Lines) -> Vec<Mapping> {
     lines
         .next()
         .filter(|line| line.starts_with(header))
         .expect("Invalid mapping header");
-    let mut map = HashMap::new();
+    let mut mappings = Vec::new();
     loop {
         match lines.next() {
             Some(line) if line.is_empty() => break,
             None => break,
             Some(line) => {
                 let mut line = line.split(' ');
-                let from = line.next().unwrap().parse::<u32>().unwrap();
-                let to = line.next().unwrap().parse::<u32>().unwrap();
-                let size = line.next().unwrap().parse::<u32>().unwrap();
-                (0..size).for_each(|index| {
-                    map.insert(from + index, to + index);
+                let destination = line.next().unwrap().parse::<u64>().unwrap();
+                let source = line.next().unwrap().parse::<u64>().unwrap();
+                let size = line.next().unwrap().parse::<u64>().unwrap();
+                mappings.push(Mapping {
+                    destination,
+                    source,
+                    size,
                 });
             }
         }
     }
-    map
+    mappings
 }
 
 #[cfg(test)]
@@ -157,18 +195,51 @@ humidity-to-location map:
     #[test]
     fn solve_part_1_challenge() {
         let input = include_str!("../input/day5.txt");
-        assert_eq!(part_1(input), 0);
+        assert_eq!(part_1(input), 173706076);
     }
 
     #[test]
     fn solve_part_2_example() {
-        let input = r"";
-        assert_eq!(part_2(input), 0);
+        let input = r"seeds: 79 14 55 13
+
+seed-to-soil map:
+50 98 2
+52 50 48
+
+soil-to-fertilizer map:
+0 15 37
+37 52 2
+39 0 15
+
+fertilizer-to-water map:
+49 53 8
+0 11 42
+42 0 7
+57 7 4
+
+water-to-light map:
+88 18 7
+18 25 70
+
+light-to-temperature map:
+45 77 23
+81 45 19
+68 64 13
+
+temperature-to-humidity map:
+0 69 1
+1 0 69
+
+humidity-to-location map:
+60 56 37
+56 93 4";
+        assert_eq!(part_2(input), 46);
     }
 
     #[test]
     fn solve_part_2_challenge() {
+        //NOTE: running this with release mode takes 1.5 sec
         let input = include_str!("../input/day5.txt");
-        assert_eq!(part_2(input), 0);
+        assert_eq!(part_2(input), 11611182);
     }
 }
