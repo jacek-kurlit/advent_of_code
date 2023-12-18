@@ -1,5 +1,7 @@
 use std::collections::BTreeMap;
 
+use itertools::Itertools;
+
 #[allow(dead_code)]
 fn part_1(input: &str) -> usize {
     calculate_galaxies_distances(input, 1)
@@ -11,32 +13,35 @@ fn part_2(input: &str, distance_size: usize) -> usize {
 }
 
 fn calculate_galaxies_distances(input: &str, distance_size: usize) -> usize {
-    let expanded_universe = parse_input(input, distance_size);
-    expanded_universe
+    parse_galaxies(input, distance_size)
         .values()
-        .enumerate()
-        .map(|(index, point)| {
-            expanded_universe
-                .values()
-                .skip(index + 1)
-                .map(|point2| distance(point, point2))
-                .sum::<usize>()
-        })
+        .combinations(2)
+        .map(|points| distance(points[0], points[1]))
         .sum()
 }
 
 type Point = (usize, usize);
 
-fn parse_input(input: &str, distance_size: usize) -> BTreeMap<Point, Point> {
-    let unexpanded_galaxy: Vec<Vec<char>> =
-        input.lines().map(|line| line.chars().collect()).collect();
-    let mut galaxy: BTreeMap<Point, Point> = BTreeMap::new();
+fn parse_galaxies(input: &str, distance_size: usize) -> BTreeMap<Point, Point> {
+    let galaxy: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
+    let mut expanded_galaxy: BTreeMap<Point, Point> = BTreeMap::new();
+    expand_on_rows(&galaxy, &mut expanded_galaxy, distance_size);
+    expand_on_columns(galaxy, &mut expanded_galaxy, distance_size);
+
+    expanded_galaxy
+}
+
+fn expand_on_rows(
+    galaxy: &[Vec<char>],
+    expanded_galaxy: &mut BTreeMap<(usize, usize), (usize, usize)>,
+    distance_size: usize,
+) {
     let mut row_offset = 0;
-    for (row, row_map) in unexpanded_galaxy.iter().enumerate() {
+    for (row, row_map) in galaxy.iter().enumerate() {
         let mut galaxy_found = false;
         for (column, point) in row_map.iter().enumerate() {
             if point == &'#' {
-                galaxy.insert((row, column), (row + row_offset, column));
+                expanded_galaxy.insert((row, column), (row + row_offset, column));
                 galaxy_found = true;
             }
         }
@@ -44,13 +49,22 @@ fn parse_input(input: &str, distance_size: usize) -> BTreeMap<Point, Point> {
             row_offset += distance_size;
         }
     }
+}
 
+fn expand_on_columns(
+    galaxy: Vec<Vec<char>>,
+    expanded_galaxy: &mut BTreeMap<(usize, usize), (usize, usize)>,
+    distance_size: usize,
+) {
     let mut column_offset = 0;
-    for column in 0..unexpanded_galaxy.len() {
+    for column in 0..galaxy.len() {
         let mut galaxy_found = false;
-        for (row, row_map) in unexpanded_galaxy.iter().enumerate() {
+        for (row, row_map) in galaxy.iter().enumerate() {
             if row_map[column] == '#' {
-                galaxy.get_mut(&(row, column)).expect("galaxy not found").1 += column_offset;
+                expanded_galaxy
+                    .get_mut(&(row, column))
+                    .expect("galaxy not found")
+                    .1 += column_offset;
                 galaxy_found = true;
             }
         }
@@ -58,8 +72,6 @@ fn parse_input(input: &str, distance_size: usize) -> BTreeMap<Point, Point> {
             column_offset += distance_size;
         }
     }
-
-    galaxy
 }
 
 fn distance(point: &Point, point2: &Point) -> usize {
