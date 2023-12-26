@@ -1,4 +1,6 @@
 pub mod algorithms;
+pub mod matrix;
+pub mod coordinates;
 mod template;
 
 pub fn load_input(path: &str) -> String {
