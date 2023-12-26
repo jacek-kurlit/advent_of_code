@@ -53,13 +53,12 @@ impl LinearTrajectory2 {
     // y1 + dy1 * t = y2 + dy2 * s
     // t = (x2 + dx2 * s - x1) / dx1
     // s = a/b
-    // a = y1dx1 + dy1x2 - dy1x1 - y2dy1dx1
+    // a = y1dx1 + dy1x2 - dy1x1 - y2dx1
     // b = dy2dx1 - dy1dx2
     // where
     // b != 0
     // dx1 != 0
     pub fn intersection_point(&self, other: &Self) -> Option<Vec2<f64>> {
-        dbg!(self, other);
         if other.velocity.x == 0.0 {
             return None;
         }
@@ -70,15 +69,16 @@ impl LinearTrajectory2 {
 
         let a = self.start.y * self.velocity.x + self.velocity.y * other.start.x
             - self.velocity.y * self.start.x
-            - other.start.y * self.velocity.y * self.velocity.x;
+            - other.start.y * self.velocity.x;
         let s = a / b;
         let t = (other.start.x + other.velocity.x * s - self.start.x) / self.velocity.x;
-        let result = Vec2::new(
+        if s.is_sign_negative() || t.is_sign_negative() {
+            return None;
+        }
+        Some(Vec2::new(
             self.start.x + self.velocity.x * t,
             self.start.y + self.velocity.y * t,
-        );
-        dbg!(result);
-        Some(result)
+        ))
     }
 }
 
@@ -99,7 +99,7 @@ mod tests {
     #[test]
     fn solve_part_1_challenge() {
         let input = include_str!("../input/day24.txt");
-        assert_eq!(part_1(input, 200000000000000.0, 400000000000000.0), 0);
+        assert_eq!(part_1(input, 200000000000000.0, 400000000000000.0), 20847);
     }
 
     #[test]
