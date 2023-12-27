@@ -1,10 +1,24 @@
 use std::collections::HashMap;
 
+use common::algorithms::lcm::lcm_of_n_numbers;
+
 #[allow(dead_code)]
-fn part_1(input: &str) -> u32 {
+fn part_1(input: &str) -> u64 {
     let parsed_network = parse_input(input);
+    road_length(
+        parsed_network.nodes.get("AAA").expect("No starting node"),
+        &parsed_network,
+        |node| node == "ZZZ",
+    )
+}
+
+fn road_length(
+    node: &Node,
+    parsed_network: &ParsedNetwork,
+    end_node_predicate: fn(&String) -> bool,
+) -> u64 {
     let mut steps = 0;
-    let mut current_node = parsed_network.nodes.get("AAA").expect("No starting node");
+    let mut current_node = node;
     for instruction in parsed_network.instructions.iter().cycle() {
         steps += 1;
         let next_node = match instruction {
@@ -12,45 +26,24 @@ fn part_1(input: &str) -> u32 {
             'R' => &current_node.1,
             _ => panic!("Invalid instruction {instruction}"),
         };
-        if next_node == "ZZZ" {
+        if end_node_predicate(next_node) {
             break;
         }
         current_node = parsed_network.nodes.get(next_node).expect("Invalid node");
     }
-
     steps
 }
 
 #[allow(dead_code)]
-fn part_2(input: &str) -> u32 {
+fn part_2(input: &str) -> u64 {
     let parsed_network = parse_input(input);
-    let mut steps = 0;
-    let mut current_nodes: Vec<&Node> = parsed_network
+    let loads_length = parsed_network
         .nodes
         .iter()
         .filter(|(k, _)| k.ends_with('A'))
-        .map(|(_, v)| v)
-        .collect();
-    for instruction in parsed_network.instructions.iter().cycle() {
-        steps += 1;
-        let next_nodes: Vec<&String> = current_nodes
-            .into_iter()
-            .map(|(left, right)| match instruction {
-                'L' => left,
-                'R' => right,
-                _ => panic!("Invalid instruction {instruction}"),
-            })
-            .collect();
-        if next_nodes.iter().all(|node| node.ends_with('Z')) {
-            break;
-        }
-        current_nodes = next_nodes
-            .into_iter()
-            .map(|node| parsed_network.nodes.get(node).unwrap())
-            .collect();
-    }
-
-    steps
+        .map(|(_, node)| road_length(node, &parsed_network, |node| node.ends_with('Z')))
+        .collect::<Vec<u64>>();
+    lcm_of_n_numbers(&loads_length)
 }
 
 fn parse_input(input: &str) -> ParsedNetwork {
@@ -130,6 +123,6 @@ XXX = (XXX, XXX)";
     #[test]
     fn solve_part_2_challenge() {
         let input = include_str!("../input/day8.txt");
-        assert_eq!(part_2(input), 0);
+        assert_eq!(part_2(input), 13289612809129);
     }
 }
