@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/zsh
 
 if [[ ! $1 =~ ^[0-9]+$ ]]; then
   echo "Error: first argument must be a year"
