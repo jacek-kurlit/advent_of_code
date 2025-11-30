@@ -1,11 +1,15 @@
 [workspace]
-# 2 is lateast that should be used
+members = [
+    "common",
+    "y2017",
+    "y2023",
+    "y2025",
+]
 resolver = "2"
-# you actually can use start here...
-members = ["common", "y*"]
 
-# add this so all libs will have those!
 [workspace.dependencies]
-rstest = "0.26"
 itertools = "0.14"
-common = { path = "../common" }
+rstest = "0.26"
+
+[workspace.dependencies.common]
+path = "../common"

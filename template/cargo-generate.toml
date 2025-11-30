@@ -1,0 +1,2 @@
+[template]
+ignore = ["src/day.tmpl"]
