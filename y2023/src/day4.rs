@@ -39,11 +39,11 @@ impl<'a> Card<'a> {
     }
 }
 
-fn parse_cards(input: &str) -> Vec<Card> {
+fn parse_cards(input: &'_ str) -> Vec<Card<'_>> {
     input.lines().map(parse_card).collect()
 }
 
-fn parse_card(line: &str) -> Card {
+fn parse_card(line: &'_ str) -> Card<'_> {
     let numbers = line.split_once(':').expect("Invalid card line").1;
     let (wining_numbers, my_numbers) = numbers.split_once('|').expect("Invalid card line");
     Card {

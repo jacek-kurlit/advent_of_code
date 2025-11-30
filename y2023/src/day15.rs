@@ -5,7 +5,7 @@ use nom::{
     character::complete::{alpha1, one_of},
     combinator::opt,
     multi::separated_list1,
-    IResult,
+    IResult, Parser,
 };
 
 #[allow(dead_code)]
@@ -63,7 +63,8 @@ fn parse_input(input: &str) -> HashMap<u32, Box> {
 }
 
 fn parse_operations(operation: &str) -> Vec<Operation> {
-    separated_list1(tag(","), parse_operation)(operation)
+    separated_list1(tag(","), parse_operation)
+        .parse(operation)
         .unwrap()
         .1
 }
@@ -71,7 +72,7 @@ fn parse_operations(operation: &str) -> Vec<Operation> {
 fn parse_operation(operation: &str) -> IResult<&str, Operation> {
     let (rest, label) = alpha1(operation)?;
     let (rest, sign) = one_of("=-")(rest)?;
-    let (rest, focal_length) = opt(nom::character::complete::u8)(rest)?;
+    let (rest, focal_length) = opt(nom::character::complete::u8).parse(rest)?;
     let operation = match sign {
         '=' => Operation::Add {
             label: label.to_string(),

@@ -56,10 +56,10 @@ fn check_condition(springs: &[char], damage_ranges: &[u32]) -> Condition {
         if broken_parts.len() > damage_ranges.len() {
             return Condition::Invalid;
         }
-        if broken_parts.len() == damage_ranges.len() {
-            if broken_parts_are_set(broken_parts, damage_ranges) {
-                return Condition::Valid;
-            }
+        if broken_parts.len() == damage_ranges.len()
+            && broken_parts_are_set(broken_parts, damage_ranges)
+        {
+            return Condition::Valid;
             //TODO: here add check that this is invalid if chain is broken and there is no '?' in the chain
         }
         // #????.### 2,1,3
@@ -70,7 +70,7 @@ fn check_condition(springs: &[char], damage_ranges: &[u32]) -> Condition {
         // }
     }
 
-    if parts.get(&'?').is_none() {
+    if !parts.contains_key(&'?') {
         return Condition::Invalid;
     }
 
@@ -87,7 +87,7 @@ fn count_parts(springs: &[char]) -> HashMap<char, Vec<Vec<usize>>> {
     springs
         .iter()
         .enumerate()
-        .group_by(|c| *c.1)
+        .chunk_by(|c| *c.1)
         .into_iter()
         .fold(HashMap::new(), |mut acc, (key, group)| {
             let positions = acc.entry(key).or_default();

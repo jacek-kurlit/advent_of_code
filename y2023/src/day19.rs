@@ -1,5 +1,5 @@
 use core::str;
-use std::{collections::HashMap, u64};
+use std::collections::HashMap;
 
 use nom::{
     branch::alt,
@@ -7,7 +7,7 @@ use nom::{
     character::complete::{self, alpha1, char, line_ending, one_of, u32},
     multi::separated_list1,
     sequence::{delimited, preceded},
-    IResult,
+    IResult, Parser,
 };
 
 #[allow(dead_code)]
@@ -56,7 +56,8 @@ fn parse_input(input: &str) -> (Vec<Workflow>, Vec<Rating>) {
 }
 
 fn parse_workflows(workflows: &str) -> Vec<Workflow> {
-    separated_list1(line_ending, parse_workflow)(workflows)
+    separated_list1(line_ending, parse_workflow)
+        .parse(workflows)
         .expect("Failed to parse workflows")
         .1
 }
@@ -64,7 +65,7 @@ fn parse_workflows(workflows: &str) -> Vec<Workflow> {
 // rfg{s<537:gd,x>2440:R,A}
 fn parse_workflow(workflow: &str) -> IResult<&str, Workflow> {
     let (rest, workflow_name) = alpha1(workflow)?;
-    let (rest, rules) = delimited(char('{'), parse_rules, char('}'))(rest)?;
+    let (rest, rules) = delimited(char('{'), parse_rules, char('}')).parse(rest)?;
     Ok((
         rest,
         Workflow {
@@ -75,14 +76,14 @@ fn parse_workflow(workflow: &str) -> IResult<&str, Workflow> {
 }
 
 fn parse_rules(rules: &str) -> IResult<&str, Vec<Rule>> {
-    separated_list1(char(','), alt((parse_operation_rule, parse_jump_rule)))(rules)
+    separated_list1(char(','), alt((parse_operation_rule, parse_jump_rule))).parse(rules)
 }
 
 fn parse_operation_rule(rule: &str) -> IResult<&str, Rule> {
     let (rest, rating_name) = one_of("xmas")(rule)?;
     let (rest, operation) = one_of("<>")(rest)?;
     let (rest, value) = u32(rest)?;
-    let (rest, next_label) = preceded(char(':'), alpha1)(rest)?;
+    let (rest, next_label) = preceded(char(':'), alpha1).parse(rest)?;
     let rule = match operation {
         '<' => Rule::LessThan {
             rating_name: rating_name.to_string(),
@@ -114,16 +115,17 @@ fn parse_ratings(ratings: &str) -> Vec<Rating> {
     separated_list1(
         complete::line_ending,
         delimited(char('{'), parse_rating, char('}')),
-    )(ratings)
+    )
+    .parse(ratings)
     .expect("Failed to parse ratings")
     .1
 }
 // x=787,m=2655,a=1222,s=2876}
 fn parse_rating(rating: &str) -> IResult<&str, Rating> {
-    let (rest, x) = delimited(tag("x="), u32, char(','))(rating)?;
-    let (rest, m) = delimited(tag("m="), u32, char(','))(rest)?;
-    let (rest, a) = delimited(tag("a="), u32, char(','))(rest)?;
-    let (rest, s) = preceded(tag("s="), u32)(rest)?;
+    let (rest, x) = delimited(tag("x="), u32, char(',')).parse(rating)?;
+    let (rest, m) = delimited(tag("m="), u32, char(',')).parse(rest)?;
+    let (rest, a) = delimited(tag("a="), u32, char(',')).parse(rest)?;
+    let (rest, s) = preceded(tag("s="), u32).parse(rest)?;
     Ok((rest, Rating { x, m, a, s }))
 }
 

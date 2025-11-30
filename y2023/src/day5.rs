@@ -1,4 +1,4 @@
-use std::{ops::Range, str::Lines, u64};
+use std::{ops::Range, str::Lines};
 
 #[allow(dead_code)]
 fn part_1(input: &str) -> u64 {
@@ -132,7 +132,7 @@ fn parse_mapping(header: &str, lines: &mut Lines) -> Vec<Mapping> {
     let mut mappings = Vec::new();
     loop {
         match lines.next() {
-            Some(line) if line.is_empty() => break,
+            Some("") => break,
             None => break,
             Some(line) => {
                 let mut line = line.split(' ');
