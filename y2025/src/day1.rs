@@ -1,11 +1,64 @@
 #[allow(dead_code)]
 fn part_1(input: &str) -> usize {
-    input.len()
+    let mut result = 0;
+    let mut pos: i16 = 50;
+    for rotation in parse_input(input) {
+        pos += rotation;
+        if pos < 0 {
+            pos = 100 + (pos % 100);
+        } else if pos > 100 {
+            pos %= 100;
+        }
+
+        if pos.abs() == 100 {
+            pos = 0;
+        }
+
+        if pos == 0 {
+            result += 1;
+        }
+    }
+    result
+}
+
+fn parse_input(input: &str) -> Vec<i16> {
+    input
+        .trim()
+        .split("\n")
+        .map(|rotation| {
+            let rotation = rotation.trim();
+            let direction = rotation.chars().next().expect("Missing direction");
+            let value: i16 = rotation[1..].parse().expect("Missing value");
+            if direction == 'R' { value } else { -value }
+        })
+        .collect()
 }
 
 #[allow(dead_code)]
 fn part_2(input: &str) -> usize {
-    input.len()
+    let mut result = 0;
+    let mut pos: i16 = 50;
+    for rotation in parse_input(input) {
+        let new_value = pos + rotation;
+        if new_value > 0 && new_value < 100 {
+            pos = new_value;
+            continue;
+        }
+        //wrong pos = 0 rotation = -5 -> new_pos = 95 but we didn't cross 0 because we are already
+        //at it...
+
+        pos += rotation;
+        if pos < 0 {
+            result += (pos.abs() / 100) as usize + 1;
+            pos = 100 + (pos % 100);
+        } else if pos >= 100 {
+            result += (pos / 100) as usize;
+            pos %= 100;
+        } else if pos == 0 {
+            result += 1;
+        }
+    }
+    result
 }
 
 #[cfg(test)]
@@ -16,20 +69,45 @@ mod tests {
 
     #[test]
     fn solve_part_1_example() {
-        let input = r"";
-        assert_eq!(part_1(input), 0);
+        let input = r"L68
+         L30
+         R48
+         L5
+         R60
+         L55
+         L1
+         L99
+         R14
+         L82";
+        assert_eq!(part_1(input), 3);
+
+        let input = r"L150
+R15
+R85
+R593
+L351";
+        assert_eq!(part_1(input), 2);
     }
 
     #[test]
     fn solve_part_1_challenge() {
         let input = load_input_for_day(1);
-        assert_eq!(part_1(&input), 0);
+        assert_eq!(part_1(&input), 984);
     }
 
     #[test]
     fn solve_part_2_example() {
-        let input = r"";
-        assert_eq!(part_2(input), 0);
+        let input = r"L68
+         L30
+         R48
+         L5
+         R60
+         L55
+         L1
+         L99
+         R14
+         L82";
+        assert_eq!(part_2(input), 6);
     }
 
     #[test]
