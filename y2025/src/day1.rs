@@ -39,24 +39,21 @@ fn part_2(input: &str) -> usize {
     let mut result = 0;
     let mut pos: i16 = 50;
     for rotation in parse_input(input) {
-        let new_value = pos + rotation;
-        if new_value > 0 && new_value < 100 {
-            pos = new_value;
-            continue;
-        }
-        //wrong pos = 0 rotation = -5 -> new_pos = 95 but we didn't cross 0 because we are already
-        //at it...
-
-        pos += rotation;
-        if pos < 0 {
-            result += (pos.abs() / 100) as usize + 1;
-            pos = 100 + (pos % 100);
-        } else if pos >= 100 {
-            result += (pos / 100) as usize;
-            pos %= 100;
-        } else if pos == 0 {
+        result += (rotation.abs() / 100) as usize;
+        let mut new_value = pos + (rotation % 100);
+        if new_value <= 0 {
+            let offset = if pos != 0 { 1 } else { 0 };
+            result += offset;
+            new_value = if new_value == 0 {
+                0
+            } else {
+                100 + (new_value % 100)
+            };
+        } else if new_value >= 100 {
             result += 1;
+            new_value %= 100;
         }
+        pos = new_value;
     }
     result
 }
@@ -110,6 +107,15 @@ L351";
         assert_eq!(part_2(input), 6);
     }
 
+    #[test]
+    fn solve_part_2_use_cases() {
+        let input = r"L150
+R15
+R85
+R593
+L351";
+        assert_eq!(part_2(input), 11);
+    }
     #[test]
     fn solve_part_2_challenge() {
         let input = load_input_for_day(1);
