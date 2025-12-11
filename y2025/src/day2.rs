@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 #[allow(dead_code)]
 fn part_1(input: &str) -> u64 {
     parse_input(input)
@@ -60,8 +62,31 @@ fn find_range_start(range_start: &str) -> (u64, u64) {
 }
 
 #[allow(dead_code)]
-fn part_2(input: &str) -> usize {
-    input.len()
+fn part_2(input: &str) -> u64 {
+    parse_input(input)
+        .into_iter()
+        .flat_map(|(from, to)| generate_invalid_ids_v2(from, to))
+        .sum()
+}
+
+fn generate_invalid_ids_v2(range_start: &str, range_end: &str) -> HashSet<u64> {
+    HashSet::new()
+}
+
+fn generate_ids_for(base: u64, start: u64, end: u64) -> Vec<u64> {
+    vec![]
+}
+
+fn generate_numbers_of_length(
+    sub_length: u64,
+    target_length: u64,
+    start_value: u64,
+    end_value: u64,
+) -> Vec<u64> {
+    let times = target_length / sub_length;
+    let mut current = start_value;
+    let mut result = vec![];
+    result
 }
 
 #[cfg(test)]
@@ -104,7 +129,7 @@ mod tests {
     #[test]
     fn solve_part_1_challenge() {
         let input = load_input_for_day(2);
-        assert_eq!(part_1(&input), 0);
+        assert_eq!(part_1(&input), 35367539282);
     }
 
     #[test]

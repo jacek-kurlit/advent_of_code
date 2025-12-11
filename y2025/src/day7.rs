@@ -131,6 +131,6 @@ mod tests {
     #[test]
     fn solve_part_2_challenge() {
         let input = load_input_for_day(7);
-        assert_eq!(part_2(&input), 0);
+        assert_eq!(part_2(&input), 23607984027985);
     }
 }
