@@ -1,5 +1,8 @@
 use std::collections::HashSet;
 
+use common::algorithms;
+use itertools::Itertools;
+
 #[allow(dead_code)]
 fn part_1(input: &str) -> u64 {
     parse_input(input)
@@ -13,7 +16,7 @@ fn parse_input(input: &str) -> Vec<(&str, &str)> {
         .trim()
         .split(",")
         .map(|range| {
-            let mut values = range.split("-");
+            let mut values = range.trim().split("-");
             (values.next().unwrap(), values.next().unwrap())
         })
         .collect()
@@ -65,16 +68,35 @@ fn find_range_start(range_start: &str) -> (u64, u64) {
 fn part_2(input: &str) -> u64 {
     parse_input(input)
         .into_iter()
-        .flat_map(|(from, to)| generate_invalid_ids_v2(from, to))
+        .map(|(from, to)| generate_invalid_ids_v2(from, to))
         .sum()
 }
 
-fn generate_invalid_ids_v2(range_start: &str, range_end: &str) -> HashSet<u64> {
-    HashSet::new()
-}
+fn generate_invalid_ids_v2(range_start: &str, range_end: &str) -> u64 {
+    let mut result = 0;
+    let start_value = range_start.parse().unwrap();
+    let end_value = range_end.parse().unwrap();
+    for number_of_digits in range_start.len() as u64..=range_end.len() as u64 {
+        let divisors = algorithms::divisors::divisors(number_of_digits);
+        if divisors.len() <= 1 {
+            continue;
+        }
+        let values = if divisors.len() == 2 {
+            generate_numbers_of_length(1, number_of_digits, start_value, end_value)
+        } else {
+            let without_last = divisors.len() - 2;
+            let divisors = divisors
+                .into_iter()
+                .skip(1)
+                .take(without_last)
+                .collect_vec();
+            generate_ids_for(divisors, number_of_digits, start_value, end_value)
+        };
+        dbg!(start_value, end_value, &values);
+        result += values.into_iter().sum::<u64>();
+    }
 
-fn generate_ids_for(base: u64, start: u64, end: u64) -> Vec<u64> {
-    vec![]
+    result
 }
 
 fn generate_numbers_of_length(
@@ -83,10 +105,28 @@ fn generate_numbers_of_length(
     start_value: u64,
     end_value: u64,
 ) -> Vec<u64> {
-    let times = target_length / sub_length;
-    let mut current = start_value;
-    let mut result = vec![];
-    result
+    let times = (target_length / sub_length) as usize;
+    let start = 10u64.pow(sub_length as u32 - 1);
+    (0..)
+        .map(|ind| {
+            let current = start + ind;
+            format!("{current}").repeat(times).parse().unwrap()
+        })
+        .skip_while(|value| *value < start_value)
+        .take_while(|value| *value <= end_value)
+        .collect_vec()
+}
+
+fn generate_ids_for(divisors: Vec<u64>, number_of_digits: u64, start: u64, end: u64) -> Vec<u64> {
+    let mut result = HashSet::new();
+    for divisor in divisors {
+        generate_numbers_of_length(divisor, number_of_digits, start, end)
+            .into_iter()
+            .for_each(|v| {
+                result.insert(v);
+            });
+    }
+    result.into_iter().collect_vec()
 }
 
 #[cfg(test)]
@@ -133,14 +173,34 @@ mod tests {
     }
 
     #[test]
-    fn solve_part_2_example() {
-        let input = r"";
+    fn part_2_use_cases() {
+        let input = "1-14";
+        assert_eq!(part_2(input), 11);
+
+        let input = "384-896";
+        assert_eq!(part_2(input), 3330);
+
+        let input = "8897636-9031809";
         assert_eq!(part_2(input), 0);
+
+        let input = "1437387916-1437426347";
+        assert_eq!(part_2(input), 1437414374);
+
+        let input = "942-1466";
+        assert_eq!(part_2(input), 7059);
+    }
+
+    #[test]
+    fn solve_part_2_example() {
+        let input = r"11-22,95-115,998-1012,1188511880-1188511890,222220-222224,
+1698522-1698528,446443-446449,38593856-38593862,565653-565659,
+824824821-824824827,2121212118-2121212124";
+        assert_eq!(part_2(input), 4174379265);
     }
 
     #[test]
     fn solve_part_2_challenge() {
         let input = load_input_for_day(2);
-        assert_eq!(part_2(&input), 0);
+        assert_eq!(part_2(&input), 45814076230);
     }
 }
