@@ -6,6 +6,8 @@ edition = "2024"
 [dependencies]
 itertools = "0.14"
 common = { path = "../common" }
+md-5 = "0.10"
+base16ct = { version = "0.3", features = ["alloc"] }
 
 [dev-dependencies]
 rstest = "0.26"

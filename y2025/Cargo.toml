@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 itertools = "0.14"
 common = { path = "../common" }
+good_lp = { version = "1.14.2", features = ["highs"], default-features = false }
 
 [dev-dependencies]
 rstest = "0.26"
