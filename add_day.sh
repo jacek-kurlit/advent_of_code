@@ -42,7 +42,11 @@ touch "${RUST_FILE}"
 cp "template/src/day.tmpl" "${RUST_FILE}"
 
 # replce all ${{day}} with ${2}
-sed -i "s/\${{day}}/${2}/g" "${RUST_FILE}"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  sed -i "" "s/\${{day}}/${2}/g" "${RUST_FILE}"
+else
+  sed -i "s/\${{day}}/${2}/g" "${RUST_FILE}"
+fi
 
 # append mod day${2}; to lib.rs
 echo "mod day${2};" >>"${BASE}/src/lib.rs"
